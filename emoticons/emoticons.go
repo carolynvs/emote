@@ -2,35 +2,38 @@ package emoticons
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/atotto/clipboard"
-	"github.com/spf13/viper"
+	"github.com/carolynvs/emote/config"
 )
 
 type App struct {
-	viper *viper.Viper
+	Out    io.Writer
+	Config *config.Config
 }
 
 func New() (*App, error) {
-	v := viper.New()
-	v.SetConfigName("emote")
-	v.AddConfigPath(".")
-
-	err := v.ReadInConfig()
+	c, err := config.Load()
 	if err != nil {
 		return nil, err
 	}
-	return &App{viper: v}, nil
+	a := &App{
+		Out:    os.Stdout,
+		Config: c,
+	}
+	return a, nil
 }
 
 func (a *App) Emote(name string, dest string) {
-	emoticon := a.viper.GetString("emoticon."+name)
+	emoticon := a.Config.Emoticon[name]
 
 	switch dest {
 	case "clipboard":
 		clipboard.WriteAll(emoticon)
-		fmt.Println(emoticon, "was copied to the clipboard")
+		fmt.Fprintf(a.Out, emoticon, "was copied to the clipboard")
 	default:
-		fmt.Println(emoticon)
+		fmt.Fprintln(a.Out, emoticon)
 	}
 }

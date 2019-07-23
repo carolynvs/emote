@@ -23,7 +23,10 @@ func buildEmoteCommand(app *emoticons.App) *cobra.Command {
 	var dest string
 
 	emote := &cobra.Command{
-		Use:   "emote",
+		Use: "emote",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			app.Out = cmd.OutOrStdout()
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			emoticonName := args[0]
 			app.Emote(emoticonName, dest)
